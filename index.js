@@ -6,6 +6,19 @@ const db = require("./utils/db.mysql");
 const sequelize = require("./utils/db.sequlize");
 const productRoutes = require("./routes/routes");
 const cors = require("cors");
+const Product = require("./sqlModels/product");
+const User = require("./sqlModels/user");
+const Cart = require("./sqlModels/cart");
+const CartItem = require("./sqlModels/cart-item");
+const Order = require("./sqlModels/order");
+const OrderItem  = require("./sqlModels/order-item");
+
+
+// require the mongoDB as a DataBase
+require("./utils/db.mongo");
+
+
+
 
 
 
@@ -41,17 +54,67 @@ app.get("/getBooks_AW",  async (req,res)=>{
 // Queries
  Association
 */
-sequelize.sync().then(res=>{
-console.log("MySql Connected! ");
-}).catch(err=>{
-    console.log("Unable to connect!",err );
-})
+
+
+
+// The below code is specify that, we have to associate the product with user model or schema
+Product.belongsTo(User, {constraints:true, onDelete:'CASCADE'});  // this specify that, on delete of User the particular association of the product will also delete.
+User.hasMany(Product);
+User.hasOne(Cart);
+Cart.belongsTo(User);
+Cart.belongsToMany(Product, {through : CartItem}); //many to many relationships
+Product.belongsToMany(Cart, {through : CartItem}); // many to many relationships
+Order.belongsTo(User);
+User.hasMany(Order);
+Order.belongsTo(Product, {through: OrderItem});
+
+
+
+
+
+
+
+
+
+
+
+/*
+Sequlize is A ORM || ODM (Object Relational Mapping), used to connect the SQL DataBase successfully!
+*/
+
+// sequelize.sync({force:true}).then(res=>{
+// console.log("MySql Connected! ");
+// }).catch(err=>{
+//     console.log("Unable to connect!",err );
+// })
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+// app.get("/docker", (req,res)=>{
+//     return res.status(200).json({message:"Docker is running..."})
+// })
+
+// app.get("/nischay", (req,res)=>{
+//       res.status(200).json({message:`You are nischay jain, your age is 23.`})
+// })
+
+*/
+
 
 
 app.use(cors());
 app.use(express.json());
 app.use("/api", productRoutes);
-
 
 
 
